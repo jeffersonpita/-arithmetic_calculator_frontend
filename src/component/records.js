@@ -1,15 +1,17 @@
 // Import the react JS packages
 import {useEffect, useState} from "react";
 import axios from "axios";
-import { ArrowLeft, ArrowRight } from "react-bootstrap-icons";
+import { ArrowLeft, ArrowRight, Trash } from "react-bootstrap-icons";
 import { format } from 'date-fns'
 
 
 export const Records = () => {
+    const apiUrl = process.env.REACT_APP_API_URL+'records/';
+
     const [records, setRecords] = useState('');
     const [nextUrl, setNextUrl] = useState('');
     const [previousUrl, setPreviousUrl] = useState('');
-    const apiUrl = process.env.REACT_APP_API_URL+'records/';
+    const [currentUrl, setCurrentUrl] = useState(apiUrl);
 
     useEffect(() => {
         // redirect to login if access_token does not exist
@@ -33,9 +35,29 @@ export const Records = () => {
                     }
                 }
             ).then((res)=>{
+                setCurrentUrl(url);
                 setRecords(res.data.results);
                 setNextUrl(res.data.next);
                 setPreviousUrl(res.data.previous);
+            });
+            
+        } catch (e) {
+            console.log(e)
+        }
+    }
+
+    const deleteHandler = (id) => {
+        // perform deletion
+        try {
+            axios.delete(
+                apiUrl+id+'/', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                    }
+                }
+            ).then((res)=>{
+                paginationHandler(currentUrl);
             });
             
         } catch (e) {
@@ -61,8 +83,13 @@ export const Records = () => {
                     <td>{format(new Date(item.date), 'yyyy-MM-dd HH:ii:ss')}</td>
                     <td>{item.operation_type_str}</td>
                     <td>$ {item.cost ? item.cost.toFixed(2) : "0.00"}</td>
+                    <td>
+                        <button className="page-link" size="sm" onClick={()=>deleteHandler(item.id)}>
+                        <Trash color="royalblue" size={12}/> Remove
+                        </button>
+                    </td>
                     </tr>)) 
-                    : (<tr><td colSpan={4}>No records found</td></tr>)}
+                    : (<tr><td colSpan={5}>No records found</td></tr>)}
                 </tbody>
             </table>
             <nav>
