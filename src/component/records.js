@@ -23,7 +23,7 @@ export const Records = () => {
         }
         else {
             // load records data
-            paginationHandler(apiUrl);
+            requestRecords(apiUrl);
             requestUserData();
         };
     }, [apiUrl]);
@@ -46,10 +46,10 @@ export const Records = () => {
     }
 
     const filterOperations = ( value ) => {
-        paginationHandler(apiUrl + '?operations=' + value);
+        requestRecords(apiUrl + '?operations=' + value);
     }
 
-    const paginationHandler = (url) => {
+    const requestRecords = (url) => {
         // get data from API and update state variables
         try {
             axios.get(
@@ -83,7 +83,7 @@ export const Records = () => {
                     }
                 }
             ).then((res)=>{
-                paginationHandler(currentUrl);
+                requestRecords(currentUrl);
             });
             
         } catch (e) {
@@ -136,12 +136,12 @@ export const Records = () => {
                 { count === 0 ? (<b>No records found</b>) : (<b>{count} records found</b>)}
                 <ul className="pagination justify-content-center">
                     <li className="page-item" key="li-left">
-                        { previousUrl ? (<button className="page-link" onClick={()=>paginationHandler(previousUrl)}>
+                        { previousUrl ? (<button className="page-link" onClick={()=>requestRecords(previousUrl)}>
                         <ArrowLeft color="royalblue" size={12}/> Previous</button>) 
                         : (null) }
                     </li>
                     <li className="page-item" key="li-right">
-                        { nextUrl ? (<button className="page-link" onClick={()=>paginationHandler(nextUrl)}>
+                        { nextUrl ? (<button className="page-link" onClick={()=>requestRecords(nextUrl)}>
                         Next <ArrowRight color="royalblue" size={12}/>
                         </button>) 
                         : (null) }
