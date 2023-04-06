@@ -100,7 +100,6 @@ export const Home = () => {
               <label>Operation</label>
               <select className="form-control mt-1" 
                 name='operation'  
-                type='text'
                 defaultValue={operations ? operations[0].id : 0}
                 onChange={(e)=>setSelectedOperation(e.target.value)}>
                 <option value="0">Select an operation</option>

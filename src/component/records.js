@@ -8,6 +8,9 @@ import { format } from 'date-fns'
 export const Records = () => {
     const apiUrl = process.env.REACT_APP_API_URL+'records/';
 
+    const [operations, setOperations] = useState(null);
+
+    const [count, setCount] = useState(0);
     const [records, setRecords] = useState('');
     const [nextUrl, setNextUrl] = useState('');
     const [previousUrl, setPreviousUrl] = useState('');
@@ -21,8 +24,30 @@ export const Records = () => {
         else {
             // load records data
             paginationHandler(apiUrl);
+            requestUserData();
         };
     }, [apiUrl]);
+
+    const requestUserData = () => {
+        // get data from API and update state variables
+        axios.get( 
+            process.env.REACT_APP_API_URL, {
+                headers: {
+                   'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                }
+            }
+        ).then((res)=>{
+            // update user data 
+            setOperations(res.data.operations);
+        }).catch((e)=> {
+            console.log('user not authenticated')
+        });
+    }
+
+    const filterOperations = ( value ) => {
+        paginationHandler(apiUrl + '?operations=' + value);
+    }
 
     const paginationHandler = (url) => {
         // get data from API and update state variables
@@ -35,6 +60,7 @@ export const Records = () => {
                     }
                 }
             ).then((res)=>{
+                setCount(res.data.count);
                 setCurrentUrl(url);
                 setRecords(res.data.results);
                 setNextUrl(res.data.next);
@@ -68,17 +94,31 @@ export const Records = () => {
     return (
         <div className="container mt-3 col-md-6 col-12">
             <h2>Records</h2>
-            <table className="table table-striped">
+            <br/>
+            <div className="form-group w-50">
+              <select className="form-control" 
+                name='operation'  
+                id='operation'  
+                defaultValue={operations ? operations[0].id : 0}
+                onChange={(e)=>filterOperations(e.target.value) }>
+                <option value="0">All operations</option>
+                {operations ? operations.map((item) => <option value={item.id} key={item.id}>{item.type_str}</option>) : ''}
+                </select>
+            </div>
+            <br/>
+            { records && records.length>0 ? (
+                <table className="datatable table table-bordered">
                 <thead>
                     <tr>
                     <th scope="col">id</th>
                     <th scope="col">creation date</th>
                     <th scope="col">operation</th>
                     <th scope="col">cost</th>
+                    <th scope="col"></th>
                     </tr>
                 </thead>
                 <tbody>
-                { records ? (records.map((item) => <tr>
+                {(records.map((item) => <tr>
                     <td>{item.id}</td>
                     <td>{format(new Date(item.date), 'yyyy-MM-dd HH:ii:ss')}</td>
                     <td>{item.operation_type_str}</td>
@@ -88,11 +128,12 @@ export const Records = () => {
                         <Trash color="royalblue" size={12}/> Remove
                         </button>
                     </td>
-                    </tr>)) 
-                    : (<tr><td colSpan={5}>No records found</td></tr>)}
+                    </tr>)) }
                 </tbody>
             </table>
+            ) : (null) }
             <nav>
+                { count === 0 ? (<b>No records found</b>) : (<b>{count} records found</b>)}
                 <ul className="pagination justify-content-center">
                     <li className="page-item" key="li-left">
                         { previousUrl ? (<button className="page-link" onClick={()=>paginationHandler(previousUrl)}>
