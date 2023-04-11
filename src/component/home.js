@@ -1,6 +1,7 @@
 // Import the react JS packages
 import {useEffect, useState} from "react";
 import axios from "axios";
+import {Login} from "./login";
 
 
 export const Home = () => {
@@ -12,6 +13,7 @@ export const Home = () => {
     const [operator1, setOperator1] = useState(0);
     const [operator2, setOperator2] = useState(0);
     const [errorMessage, setErrorMessage] = useState('');
+    const [loggedUser, setLoggedUser] = useState(false);
 
 
     const submit = e => {
@@ -64,18 +66,20 @@ export const Home = () => {
             }
         ).then((res)=>{
             // update user data 
+            setLoggedUser(true);
             setUserName(res.data.username);
             setUserBalance(res.data.user_balance);
             setOperations(res.data.operations);
         }).catch((e)=> {
-            console.log('user not authenticated')
+            console.log('user not authenticated');
+            setLoggedUser(false);
         });
     }
 
     useEffect(() => {
         // redirect to login if access_token does not exist
-        if(localStorage.getItem('access_token') === null) {                   
-            window.location.href = '/login'
+        if(localStorage.getItem('access_token') === null) {     
+            setLoggedUser(false);              
         }
         else {
             // request user data
@@ -83,7 +87,8 @@ export const Home = () => {
         };
     }, []);
 
-    return (
+    if(loggedUser){
+        return (
         <div className="Auth-form-container">
         <form className="Auth-form" onSubmit={submit}>
           <div className="Auth-form-content">
@@ -130,6 +135,9 @@ export const Home = () => {
             </div>
           </div>
        </form>
-     </div>
-    )
+    </div>
+    )}
+    else {
+        return (<Login/>);
+    }
 }
